@@ -113,32 +113,33 @@ JacPropVec(double* __restrict__ P,
            const double* __restrict__ A6,
            const double S3)
 {
+
   using namespace CxxUtils;
   using vec2 = CxxUtils::vec<double, 2>;
 
-  // Magnetic field
+  //Magnetic field
   // H0
   vec2 H0_12;
   vload(H0_12, &H0[1]);
-  vec2 H0_0{ H0[0], 0 };
+  vec2 H0_0{H0[0], 0};
   vec2 H0_20{};
   vblend<1, 2>(H0_20, H0_12, H0_0);
   // H1
   vec2 H1_12;
   vload(H1_12, &H1[1]);
-  vec2 H1_0{ H1[0], 0 };
+  vec2 H1_0{H1[0], 0};
   vec2 H1_20{};
   vblend<1, 2>(H1_20, H1_12, H1_0);
   // H2
   vec2 H2_12;
   vload(H2_12, &H2[1]);
-  vec2 H2_0{ H2[0], 0 };
+  vec2 H2_0{H2[0], 0};
   vec2 H2_20{};
   vblend<1, 2>(H2_20, H2_12, H2_0);
 
   /***
-   * d step 2  PART
-   */
+  * d step 2  PART
+  */
   // double* d2A = &P[24];
   vec2 d2_01;
   vload(d2_01, &P[24]);
@@ -197,7 +198,7 @@ JacPropVec(double* __restrict__ P,
   // d2A[2] = ((d2C0 + 2. * d2C3) + (d2C5 + d2C6)) * (1. / 3.);
   vec2 d2R_01{};
   vload(d2R_01, &P[21]);
-  vec2 d2R_2{ P[23] };
+  vec2 d2R_2{P[23]};
   d2R_01 += (d22_01 + d23_01 + d24_01) * S3;
   vstore(&P[21], d2R_01);
   d2R_2 += ((d22_2 + d23_2 + d24_2) * S3);
@@ -206,9 +207,9 @@ JacPropVec(double* __restrict__ P,
   P[26] = (((d20_2 + 2 * d23_2) + (d25_2 + d26_2)) * (1. / 3.))[0];
 
   /***
-   * d step 3  PART
-   * Same as d2 in principle
-   */
+  * d step 3  PART
+  * Same as d2 in principle
+  */
   // double* d3A = &P[31];
   vec2 d3_01;
   vload(d3_01, &P[31]);
@@ -267,17 +268,17 @@ JacPropVec(double* __restrict__ P,
   // d3A[2] = ((d3C0 + 2. * d3C3) + (d3C5 + d3C6)) * (1. / 3.);
   vec2 d3R_01{};
   vload(d3R_01, &P[28]);
-  vec2 d3R_2{ P[29] };
+  vec2 d3R_2{P[30]};
   d3R_01 += (d32_01 + d33_01 + d34_01) * S3;
   vstore(&P[28], d3R_01);
-  d3R_2 += ((d32_2 + d32_2 + d34_2) * S3);
-  P[30] = d2R_2[0];
+  d3R_2 += ((d32_2 + d33_2 + d34_2) * S3);
+  P[30] = d3R_2[0];
   vstore(&P[31], ((d30_01 + 2 * d33_01) + (d35_01 + d36_01)) * (1. / 3.));
   P[33] = (((d30_2 + 2 * d33_2) + (d35_2 + d36_2)) * (1. / 3.))[0];
 
   /***
-   * d step 4  PART
-   */
+  * d step 4  PART
+  */
   // double* d4A = &P[38];
   vec2 d4_01;
   vload(d4_01, &P[38]);
@@ -288,7 +289,7 @@ JacPropVec(double* __restrict__ P,
   // A0
   vec2 A0_01;
   vload(A0_01, &A0[0]);
-  vec2 A0_2{ A0[2], 0 };
+  vec2 A0_2{A0[2], 0};
   // double d4A0 =(A0[0]+H0[2]*d4A[1])-H0[1]*d4A[2];
   // double d4B0 =(A0[1]+H0[0]*d4A[2])-H0[2]*d4A[0];
   // double d4C0 =(A0[2]+H0[1]*d4A[0])-H0[0]*d4A[1];
@@ -306,7 +307,7 @@ JacPropVec(double* __restrict__ P,
   // A
   vec2 A_01;
   vload(A_01, &A[0]);
-  vec2 A_2{ A[2], 0 };
+  vec2 A_2{A[2], 0};
   // double d0 = d4A[0] - A[0];
   // double d1 = d4A[1] - A[1];
   // double d2 = d4A[2] - A[2];
@@ -315,7 +316,7 @@ JacPropVec(double* __restrict__ P,
   // A3
   vec2 A3_01;
   vload(A3_01, &A3[0]);
-  vec2 A3_2{ A3[2], 0 };
+  vec2 A3_2{A3[2], 0};
   // double d4A3 = ((A3[0] + d0) + d4B2 * H1[2]) - d4C2 * H1[1];
   // double d4B3 = ((A3[1] + d1) + d4C2 * H1[0]) - d4A2 * H1[2];
   // double d4C3 = ((A3[2] + d2) + d4A2 * H1[1]) - d4B2 * H1[0];
@@ -328,7 +329,7 @@ JacPropVec(double* __restrict__ P,
   // A4
   vec2 A4_01;
   vload(A4_01, &A4[0]);
-  vec2 A4_2{ A4[2], 0 };
+  vec2 A4_2{A4[2], 0};
   // double d4A4 = ((A4[0] + d0) + d4B3 * H1[2]) - d4C3 * H1[1];
   // double d4B4 = ((A4[1] + d1) + d4C3 * H1[0]) - d4A3 * H1[2];
   // double d4C4 = ((A4[2] + d2) + d4A3 * H1[1]) - d4B3 * H1[0];
@@ -351,7 +352,7 @@ JacPropVec(double* __restrict__ P,
   // A6
   vec2 A6_01;
   vload(A6_01, &A6[0]);
-  vec2 A6_2{ A6[2], 0 };
+  vec2 A6_2{A6[2], 0};
   // dR = &P[35];
   // dR[0] += (d4A2 + d4A3 + d4A4) * S3;
   // dR[1] += (d4B2 + d4B3 + d4B4) * S3;
@@ -361,13 +362,12 @@ JacPropVec(double* __restrict__ P,
   // d4A[2] = ((d4C0 + 2. * d4C3) + (d4C5 + d4C6 + A6[2])) * (1. / 3.);
   vec2 d4R_01{};
   vload(d4R_01, &P[35]);
-  vec2 d4R_2{ P[37] };
+  vec2 d4R_2{P[37]};
   d4R_01 += (d42_01 + d43_01 + d44_01) * S3;
   vstore(&P[35], d4R_01);
-  d4R_2 += ((d42_2 + d42_2 + d44_2) * S3);
+  d4R_2 += ((d42_2 + d43_2 + d44_2) * S3);
   P[37] = d4R_2[0];
-  vstore(&P[38],
-         ((d40_01 + 2 * d43_01) + (d45_01 + d46_01 + A6_01)) * (1. / 3.));
-  P[40] = (((d40_2 + 2 * d43_2) + (d45_2 + d46_2 + A6_2)) * (1. / 3.))[0];
+  vstore(&P[38], ((d40_01 + 2 * d43_01) + (d45_01 + d46_01 +A6_01)) * (1. / 3.));
+  P[40] = (((d40_2 + 2 * d43_2) + (d45_2 + d46_2 +A6_2)) * (1. / 3.))[0];
 }
 #endif
