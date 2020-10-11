@@ -40,12 +40,12 @@ main()
             << PLoop[38] << ", " << PLoop[39] << ", " << PLoop[40] << '\n';
 
   for (int i = 0; i < 45; ++i) {
-    if (std::abs(P[i] - PLoop[i]) > 1e-12) {
+    if (std::abs(P[i] - PLoop[i]) > 1e-14) {
       std::cout << "element  " << i << " differs " <<  std::abs(P[i] - PLoop[i]) <<'\n';
     }
   }
 
-  std::cout<<'\n' << "============ SEE UNROLL ============" << '\n';
+  std::cout<<'\n' << "============ SSE UNROLL ============" << '\n';
   double Pvec[45] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
                       1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8,
                       1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7,
@@ -60,10 +60,31 @@ main()
             << Pvec[38] << ", " << Pvec[39] << ", " << Pvec[40] << '\n';
 
   for (int i = 0; i < 45; ++i) {
-    if (std::abs(P[i] - Pvec[i]) > 1e-12) {
+    if (std::abs(P[i] - Pvec[i]) > 1e-14) {
       std::cout << "element  " << i << " differs " << std::abs(P[i] - Pvec[i]) <<'\n';
     }
   }
+
+  std::cout<<'\n' << "============ SSE LOOP ============" << '\n';
+  double PloopVec[45] = { 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9,
+                      1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8,
+                      1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7,
+                      2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6,
+                      3.7, 3.8, 3.9, 4.0, 4.1, 4.2, 4.3, 4.4, 4.5 };
+  JacPropLoopVec(PloopVec, H0, H1, H2, A, A0, A3, A4, A6, 0.3);
+  std::cout << PloopVec[21] << ", " << PloopVec[22] << ", " << PloopVec[23] << '\n'
+            << PloopVec[24] << ", " << PloopVec[25] << ", " << PloopVec[26] << '\n'
+            << PloopVec[28] << ", " << PloopVec[29] << ", " << PloopVec[30] << '\n'
+            << PloopVec[31] << ", " << PloopVec[32] << ", " << PloopVec[33] << '\n'
+            << PloopVec[35] << ", " << PloopVec[36] << ", " << PloopVec[37] << '\n'
+            << PloopVec[38] << ", " << PloopVec[39] << ", " << PloopVec[40] << '\n';
+
+  for (int i = 0; i < 45; ++i) {
+    if (std::abs(P[i] - PloopVec[i]) > 1e-14) {
+      std::cout << "element  " << i << " differs " << std::abs(P[i] - PloopVec[i]) <<'\n';
+    }
+  }
+
 
   return 0;
 }

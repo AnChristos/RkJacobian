@@ -9,6 +9,7 @@
 double P[45];
 double Ploop[45];
 double Pvec[45];
+double Ploopvec[45];
 double H0[3];
 double H1[3];
 double H2[3];
@@ -30,6 +31,7 @@ public:
       P[i]=in;
       Ploop[i]=in;
       Pvec[i]=in;
+      Ploopvec[i]=in;
     }
     for (size_t i = 0; i < 3; ++i) {
       H0[i] = dis(gen);
@@ -46,6 +48,20 @@ public:
 InitArray initArray;
 
 static void
+RkJacobianLoop_bench(benchmark::State& state)
+{
+  for (auto _ : state) {
+    const int n = state.range(0);
+    for (int i = 0; i < n; ++i) {
+      JacPropLoop(Ploop, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
+    }
+  }
+}
+BENCHMARK(RkJacobianLoop_bench)->RangeMultiplier(2)->Range(1024, 4096);
+
+
+
+static void
 RkJacobian_bench(benchmark::State& state)
 {
   for (auto _ : state) {
@@ -58,16 +74,16 @@ RkJacobian_bench(benchmark::State& state)
 BENCHMARK(RkJacobian_bench)->RangeMultiplier(2)->Range(1024, 4096);
 
 static void
-RkJacobianLoop_bench(benchmark::State& state)
+RkJacobianLoopVec2_bench(benchmark::State& state)
 {
   for (auto _ : state) {
     const int n = state.range(0);
     for (int i = 0; i < n; ++i) {
-      JacPropLoop(Ploop, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
+      JacPropLoopVec(Ploopvec, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
     }
   }
 }
-BENCHMARK(RkJacobianLoop_bench)->RangeMultiplier(2)->Range(1024, 4096);
+BENCHMARK(RkJacobianLoopVec2_bench)->RangeMultiplier(2)->Range(1024, 4096);
 
 
 
