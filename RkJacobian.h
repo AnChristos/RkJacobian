@@ -100,6 +100,69 @@ JacProp(double* __restrict__ P,
   d4A[1] = ((d4B0 + 2. * d4B3) + (d4B5 + d4B6 + A6[1])) * (1. / 3.);
   d4A[2] = ((d4C0 + 2. * d4C3) + (d4C5 + d4C6 + A6[2])) * (1. / 3.);
 }
+inline void
+JacPropLoop(double* __restrict__ P,
+            const double* __restrict__ H0,
+            const double* __restrict__ H1,
+            const double* __restrict__ H2,
+            const double* __restrict__ A,
+            const double* __restrict__ A0,
+            const double* __restrict__ A3,
+            const double* __restrict__ A4,
+            const double* __restrict__ A6,
+            const double S3)
+
+{
+
+  for (int i = 21; i < 42; i += 7) {
+    double* dR = &P[i];
+    double* dA = &P[i + 3];
+    double dA0 = H0[2] * dA[1] - H0[1] * dA[2];
+    double dB0 = H0[0] * dA[2] - H0[2] * dA[0];
+    double dC0 = H0[1] * dA[0] - H0[0] * dA[1];
+    if (i == 35) {
+      dA0 += A0[0];
+      dB0 += A0[1];
+      dC0 += A0[2];
+    }
+    double dA2 = dA0 + dA[0];
+    double dB2 = dB0 + dA[1];
+    double dC2 = dC0 + dA[2];
+    double dA3 = dA[0] + dB2 * H1[2] - dC2 * H1[1];
+    double dB3 = dA[1] + dC2 * H1[0] - dA2 * H1[2];
+    double dC3 = dA[2] + dA2 * H1[1] - dB2 * H1[0];
+    if (i == 35) {
+      dA3 += A3[0] - A[0];
+      dB3 += A3[1] - A[1];
+      dC3 += A3[2] - A[2];
+    }
+    double dA4 = dA[0] + dB3 * H1[2] - dC3 * H1[1];
+    double dB4 = dA[1] + dC3 * H1[0] - dA3 * H1[2];
+    double dC4 = dA[2] + dA3 * H1[1] - dB3 * H1[0];
+    if (i == 35) {
+      dA4 += A4[0] - A[0];
+      dB4 += A4[1] - A[1];
+      dC4 += A4[2] - A[2];
+    }
+    double dA5 = dA4 + dA4 - dA[0];
+    double dB5 = dB4 + dB4 - dA[1];
+    double dC5 = dC4 + dC4 - dA[2];
+    double dA6 = dB5 * H2[2] - dC5 * H2[1];
+    double dB6 = dC5 * H2[0] - dA5 * H2[2];
+    double dC6 = dA5 * H2[1] - dB5 * H2[0];
+    if (i == 35) {
+      dA6 += A6[0];
+      dB6 += A6[1];
+      dC6 += A6[2];
+    }
+    dR[0] += (dA2 + dA3 + dA4) * S3;
+    dA[0] = (dA0 + dA3 + dA3 + dA5 + dA6) * (1. / 3.);
+    dR[1] += (dB2 + dB3 + dB4) * S3;
+    dA[1] = (dB0 + dB3 + dB3 + dB5 + dB6) * (1. / 3.);
+    dR[2] += (dC2 + dC3 + dC4) * S3;
+    dA[2] = (dC0 + dC3 + dC3 + dC5 + dC6) * (1. / 3.);
+  }
+}
 
 inline void
 JacPropVec(double* __restrict__ P,

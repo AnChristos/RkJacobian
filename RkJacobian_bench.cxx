@@ -7,6 +7,8 @@
  * A bit hacky way to create random inputs
  */
 double P[45];
+double Ploop[45];
+double Pvec[45];
 double H0[3];
 double H1[3];
 double H2[3];
@@ -24,7 +26,10 @@ public:
     std::mt19937 gen;
     std::uniform_real_distribution<> dis(1.0, 10.0);
     for (size_t i = 0; i < 45; ++i) {
-      P[i] = dis(gen);
+      double in= dis(gen);
+      P[i]=in;
+      Ploop[i]=in;
+      Pvec[i]=in;
     }
     for (size_t i = 0; i < 3; ++i) {
       H0[i] = dis(gen);
@@ -53,12 +58,26 @@ RkJacobian_bench(benchmark::State& state)
 BENCHMARK(RkJacobian_bench)->RangeMultiplier(2)->Range(1024, 4096);
 
 static void
+RkJacobianLoop_bench(benchmark::State& state)
+{
+  for (auto _ : state) {
+    const int n = state.range(0);
+    for (int i = 0; i < n; ++i) {
+      JacPropLoop(Ploop, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
+    }
+  }
+}
+BENCHMARK(RkJacobianLoop_bench)->RangeMultiplier(2)->Range(1024, 4096);
+
+
+
+static void
 RkJacobianVec2_bench(benchmark::State& state)
 {
   for (auto _ : state) {
     const int n = state.range(0);
     for (int i = 0; i < n; ++i) {
-      JacPropVec(P, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
+      JacPropVec(Pvec, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
     }
   }
 }
