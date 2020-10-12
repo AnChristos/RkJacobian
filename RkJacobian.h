@@ -132,13 +132,21 @@ JacPropVec(double* __restrict__ P,
   using vec2 = CxxUtils::vec<double, 2>;
 
   // d2 part
+  vec2 d2R_xy{};
+  vload(d2R_xy, &P[21]);
+  vec2 d2R_z{ P[23] };
+
   vec2 d2_xy;
   vload(d2_xy, &P[24]);
   vec2 d2_yz;
   vload(d2_yz, &P[25]);
   vec2 d2_zx{};
   vblend<1, 2>(d2_zx, d2_yz, d2_xy);
+
   // d3 part
+  vec2 d3R_xy{};
+  vload(d3R_xy, &P[28]);
+  vec2 d3R_z{ P[30] };
   vec2 d3_xy;
   vload(d3_xy, &P[31]);
   vec2 d3_yz;
@@ -146,6 +154,9 @@ JacPropVec(double* __restrict__ P,
   vec2 d3_zx{};
   vblend<1, 2>(d3_zx, d3_yz, d3_xy);
   // d4 part
+  vec2 d4R_xy{};
+  vload(d4R_xy, &P[35]);
+  vec2 d4R_z{ P[37] };
   vec2 d4_xy;
   vload(d4_xy, &P[38]);
   vec2 d4_yz;
@@ -153,7 +164,6 @@ JacPropVec(double* __restrict__ P,
   vec2 d4_zx{};
   vblend<1, 2>(d4_zx, d4_yz, d4_xy);
 
-  //
   // H0
   vec2 H0_yz;
   vload(H0_yz, &H0[1]);
@@ -161,17 +171,49 @@ JacPropVec(double* __restrict__ P,
   vload(H0_xy, &H0[0]);
   vec2 H0_zx{};
   vblend<1, 2>(H0_zx, H0_yz, H0_xy);
+  // H1
+  vec2 H1_yz;
+  vload(H1_yz, &H1[1]);
+  vec2 H1_xy;
+  vload(H1_xy, &H1[0]);
+  vec2 H1_zx{};
+  vblend<1, 2>(H1_zx, H1_yz, H1_xy);
+  // H2
+  vec2 H2_yz;
+  vload(H2_yz, &H2[1]);
+  vec2 H2_xy;
+  vload(H2_xy, &H2[0]);
+  vec2 H2_zx{};
+  vblend<1, 2>(H2_zx, H2_yz, H2_xy);
+
+  // As
+  vec2 A0_xy;
+  vload(A0_xy, &A0[0]);
+  vec2 A0_zx = { A0[2], A0[0] };
+
+  vec2 A_xy;
+  vload(A_xy, &A[0]);
+  vec2 A_zx = { A[2], A[0] };
+
+  vec2 A3_xy;
+  vload(A3_xy, &A3[0]);
+  vec2 A3_zx = { A3[2], A3[0] };
+
+  vec2 A4_xy;
+  vload(A4_xy, &A4[0]);
+  vec2 A4_zx = { A4[2], A4[0] };
+
+  vec2 A6_xy;
+  vload(A6_xy, &A6[0]);
+  vec2 A6_zx = { A6[2], A6[0] };
+
+  //
   vec2 d20_xy = H0_zx * d2_yz - H0_yz * d2_zx;
   vec2 d20_zx = H0_yz * d2_xy - H0_xy * d2_yz;
   vec2 d30_xy = H0_zx * d3_yz - H0_yz * d3_zx;
   vec2 d30_zx = H0_yz * d3_xy - H0_xy * d3_yz;
-  // A0
-  vec2 A0_xy;
-  vload(A0_xy, &A0[0]);
-  vec2 A0_zx = { A0[2], A0[0] };
   vec2 d40_xy = (A0_xy + H0_zx * d4_yz) - H0_yz * d4_zx;
   vec2 d40_zx = (A0_zx + H0_yz * d4_xy) - H0_xy * d4_yz;
-
   //
   vec2 d22_xy = d20_xy + d2_xy;
   vec2 d22_zx = d20_zx + d2_zx;
@@ -185,21 +227,9 @@ JacPropVec(double* __restrict__ P,
   vec2 d42_zx = d40_zx + d4_zx;
   vec2 d42_yz{};
   vblend<1, 2>(d42_yz, d42_xy, d42_zx);
-  vec2 A_xy;
-  vload(A_xy, &A[0]);
-  vec2 A_zx = { A[2], A[0] };
   vec2 d_xy = d4_xy - A_xy;
   vec2 d_zx = d4_zx - A_zx;
-
   //
-  // H1
-  vec2 H1_yz;
-  vload(H1_yz, &H1[1]);
-  vec2 H1_xy;
-  vload(H1_xy, &H1[0]);
-  vec2 H1_zx{};
-  //
-  vblend<1, 2>(H1_zx, H1_yz, H1_xy);
   vec2 d23_xy = (d2_xy + d22_yz * H1_zx) - d22_zx * H1_yz;
   vec2 d23_zx = (d2_zx + d22_xy * H1_yz) - d22_yz * H1_xy;
   vec2 d23_yz{};
@@ -208,9 +238,6 @@ JacPropVec(double* __restrict__ P,
   vec2 d33_zx = (d3_zx + d32_xy * H1_yz) - d32_yz * H1_xy;
   vec2 d33_yz{};
   vblend<1, 2>(d33_yz, d33_xy, d33_zx);
-  vec2 A3_xy;
-  vload(A3_xy, &A3[0]);
-  vec2 A3_zx = { A3[2], A3[0] };
   vec2 d43_xy = ((A3_xy + d_xy) + d42_yz * H1_zx) - d42_zx * H1_yz;
   vec2 d43_zx = ((A3_zx + d_zx) + d42_xy * H1_yz) - d42_yz * H1_xy;
   vec2 d43_yz{};
@@ -220,9 +247,6 @@ JacPropVec(double* __restrict__ P,
   vec2 d24_zx = (d2_zx + d23_xy * H1_yz) - d23_yz * H1_xy;
   vec2 d34_xy = (d3_xy + d33_yz * H1_zx) - d33_zx * H1_yz;
   vec2 d34_zx = (d3_zx + d33_xy * H1_yz) - d33_yz * H1_xy;
-  vec2 A4_xy;
-  vload(A4_xy, &A4[0]);
-  vec2 A4_zx = { A4[2], A4[0] };
   vec2 d44_xy = ((A4_xy + d_xy) + d43_yz * H1_zx) - d43_zx * H1_yz;
   vec2 d44_zx = ((A4_zx + d_zx) + d43_xy * H1_yz) - d43_yz * H1_xy;
   //
@@ -239,13 +263,6 @@ JacPropVec(double* __restrict__ P,
   vec2 d45_yz{};
   vblend<1, 2>(d45_yz, d45_xy, d45_zx);
   //
-  // H2
-  vec2 H2_yz;
-  vload(H2_yz, &H2[1]);
-  vec2 H2_xy;
-  vload(H2_xy, &H2[0]);
-  vec2 H2_zx{};
-  vblend<1, 2>(H2_zx, H2_yz, H2_xy);
   vec2 d26_xy = d25_yz * H2_zx - d25_zx * H2_yz;
   vec2 d26_zx = d25_xy * H2_yz - d25_yz * H2_xy;
   vec2 d36_xy = d35_yz * H2_zx - d35_zx * H2_yz;
@@ -253,29 +270,14 @@ JacPropVec(double* __restrict__ P,
   vec2 d46_xy = d45_yz * H2_zx - d45_zx * H2_yz;
   vec2 d46_zx = d45_xy * H2_yz - d45_yz * H2_xy;
   //
-  vec2 d2R_xy{};
-  vload(d2R_xy, &P[21]);
-  vec2 d2R_z{ P[23] };
   d2R_xy += (d22_xy + d23_xy + d24_xy) * S3;
   d2R_z += ((d22_zx + d23_zx + d24_zx) * S3);
-  
-  vec2 d3R_xy{};
-  vload(d3R_xy, &P[28]);
-  vec2 d3R_z{ P[30] };
   d3R_xy += (d32_xy + d33_xy + d34_xy) * S3;
   d3R_z += (d32_zx + d33_zx + d34_zx) * S3;
-  
-  vec2 A6_xy;
-  vload(A6_xy, &A6[0]);
-  vec2 A6_zx = { A6[2], A6[0] };
-  vec2 d4R_xy{};
-  vload(d4R_xy, &P[35]);
-  vec2 d4R_z{ P[37] };
   d4R_xy += (d42_xy + d43_xy + d44_xy) * S3;
   d4R_z += (d42_zx + d43_zx + d44_zx) * S3;
 
   // store back d2
-  //
   vstore(&P[21], d2R_xy);
   P[23] = d2R_z[0];
   vstore(&P[24], ((d20_xy + 2 * d23_xy) + (d25_xy + d26_xy)) * (1. / 3.));
