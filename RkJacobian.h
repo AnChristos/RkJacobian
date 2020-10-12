@@ -135,7 +135,6 @@ JacPropVec(double* __restrict__ P,
   vec2 d2R_xy{};
   vload(d2R_xy, &P[21]);
   vec2 d2R_z{ P[23] };
-
   vec2 d2_xy;
   vload(d2_xy, &P[24]);
   vec2 d2_yz;
@@ -153,6 +152,7 @@ JacPropVec(double* __restrict__ P,
   vload(d3_yz, &P[32]);
   vec2 d3_zx{};
   vblend<1, 2>(d3_zx, d3_yz, d3_xy);
+  
   // d4 part
   vec2 d4R_xy{};
   vload(d4R_xy, &P[35]);
@@ -190,19 +190,15 @@ JacPropVec(double* __restrict__ P,
   vec2 A0_xy;
   vload(A0_xy, &A0[0]);
   vec2 A0_zx = { A0[2], A0[0] };
-
   vec2 A_xy;
   vload(A_xy, &A[0]);
   vec2 A_zx = { A[2], A[0] };
-
   vec2 A3_xy;
   vload(A3_xy, &A3[0]);
   vec2 A3_zx = { A3[2], A3[0] };
-
   vec2 A4_xy;
   vload(A4_xy, &A4[0]);
   vec2 A4_zx = { A4[2], A4[0] };
-
   vec2 A6_xy;
   vload(A6_xy, &A6[0]);
   vec2 A6_zx = { A6[2], A6[0] };
