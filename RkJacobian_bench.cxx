@@ -7,9 +7,8 @@
  * A bit hacky way to create random inputs
  */
 double P[45];
-double Ploop[45];
 double Pvec[45];
-double Ploopvec[45];
+double Pvec2[45];
 double H0[3];
 double H1[3];
 double H2[3];
@@ -29,9 +28,8 @@ public:
     for (size_t i = 0; i < 45; ++i) {
       double in= dis(gen);
       P[i]=in;
-      Ploop[i]=in;
       Pvec[i]=in;
-      Ploopvec[i]=in;
+      Pvec2[i]=in;
     }
     for (size_t i = 0; i < 3; ++i) {
       H0[i] = dis(gen);
@@ -48,20 +46,6 @@ public:
 InitArray initArray;
 
 static void
-RkJacobianLoop_bench(benchmark::State& state)
-{
-  for (auto _ : state) {
-    const int n = state.range(0);
-    for (int i = 0; i < n; ++i) {
-      JacPropLoop(Ploop, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
-    }
-  }
-}
-BENCHMARK(RkJacobianLoop_bench)->RangeMultiplier(2)->Range(1024, 4096);
-
-
-
-static void
 RkJacobian_bench(benchmark::State& state)
 {
   for (auto _ : state) {
@@ -74,21 +58,7 @@ RkJacobian_bench(benchmark::State& state)
 BENCHMARK(RkJacobian_bench)->RangeMultiplier(2)->Range(1024, 4096);
 
 static void
-RkJacobianLoopVec2_bench(benchmark::State& state)
-{
-  for (auto _ : state) {
-    const int n = state.range(0);
-    for (int i = 0; i < n; ++i) {
-      JacPropLoopVec(Ploopvec, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
-    }
-  }
-}
-BENCHMARK(RkJacobianLoopVec2_bench)->RangeMultiplier(2)->Range(1024, 4096);
-
-
-
-static void
-RkJacobianVec2_bench(benchmark::State& state)
+RkJacobianVec_bench(benchmark::State& state)
 {
   for (auto _ : state) {
     const int n = state.range(0);
@@ -97,6 +67,21 @@ RkJacobianVec2_bench(benchmark::State& state)
     }
   }
 }
+BENCHMARK(RkJacobianVec_bench)->RangeMultiplier(2)->Range(1024, 4096);
+
+static void
+RkJacobianVec2_bench(benchmark::State& state)
+{
+  for (auto _ : state) {
+    const int n = state.range(0);
+    for (int i = 0; i < n; ++i) {
+      JacPropVec2(Pvec, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
+    }
+  }
+}
 BENCHMARK(RkJacobianVec2_bench)->RangeMultiplier(2)->Range(1024, 4096);
+
+
+
 
 BENCHMARK_MAIN();
