@@ -75,7 +75,7 @@ RkJacobianVec2_bench(benchmark::State& state)
   for (auto _ : state) {
     const int n = state.range(0);
     for (int i = 0; i < n; ++i) {
-      JacPropVec(Pvec2, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
+      JacPropVec2(Pvec2, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
     }
   }
 }
