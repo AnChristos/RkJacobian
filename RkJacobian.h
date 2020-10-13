@@ -78,7 +78,6 @@ JacProp(double* __restrict__ P,
   double d4B6 = d4C5 * H2[0] - d4A5 * H2[2];
   double d4C6 = d4A5 * H2[1] - d4B5 * H2[0];
 
-  //--->
   double* dR = &P[21];
   dR[0] += (d2A2 + d2A3 + d2A4) * S3;
   dR[1] += (d2B2 + d2B3 + d2B4) * S3;
@@ -104,16 +103,16 @@ JacProp(double* __restrict__ P,
   d4A[2] = ((d4C0 + 2. * d4C3) + (d4C5 + d4C6 + A6[2])) * (1. / 3.);
 }
 
-/*
- * Run-2 code with SSE version 1.
+/* SSE try 1
  * Something like the
  * d4A6
  * d4B6
  * d4C6
- *
  * becomes d46_xy (the A,B) , d46_z (the C)
  * e.g A ->x , B -> y, C->z
- * and we keep the numbers.
+ *
+ * This uses cross product like operations 
+ * quite a bit.
  */
 inline void
 JacPropVec(double* __restrict__ P,
@@ -293,5 +292,120 @@ JacPropVec(double* __restrict__ P,
   P[40] = (((d40_zx + 2 * d43_zx) + (d45_zx + d46_zx + A6_zx))[0] * (1. / 3.));
 }
 
+/*
+ * alternative vectorization direction
+ * d2A, d3A, d4A are a 
+ * d23A {d2A,d3A} vectos and 
+ * d4A {3,4} stays float 
+ *
+ * Basically more like 1st buddle calculation
+ * together 
+ */
+inline void
+JacPropVec2(double* __restrict__ P,
+            const double* __restrict__ H0,
+            const double* __restrict__ H1,
+            const double* __restrict__ H2,
+            const double* __restrict__ A,
+            const double* __restrict__ A0,
+            const double* __restrict__ A3,
+            const double* __restrict__ A4,
+            const double* __restrict__ A6,
+            const double S3)
+{
+  using namespace CxxUtils;
+  using vec2 = CxxUtils::vec<double, 2>;
+
+  vec2 d23A_0{ P[24], P[31] };
+  vec2 d23A_1{ P[25], P[32] };
+  vec2 d23A_2{ P[26], P[33] };
+  const double d4A_0 = P[38];
+  const double d4A_1 = P[39];
+  const double d4A_2 = P[40];
+  // H
+  const double H0_0 = H0[0];
+  const double H0_1 = H0[1];
+  const double H0_2 = H0[2];
+  const double H1_0 = H1[0];
+  const double H1_1 = H1[1];
+  const double H1_2 = H1[2];
+  const double H2_0 = H2[0];
+  const double H2_1 = H2[1];
+  const double H2_2 = H2[2];
+  //
+  vec2 d23A0 = H0_2 * d23A_1 - H0_1 * d23A_2;
+  vec2 d23B0 = H0_0 * d23A_2 - H0_2 * d23A_0;
+  vec2 d23C0 = H0_1 * d23A_0 - H0_0 * d23A_1;
+  const double d4A0 = (A0[0] + H0_2 * d4A_1) - H0_1 * d4A_2;
+  const double d4B0 = (A0[1] + H0_0 * d4A_2) - H0_2 * d4A_0;
+  const double d4C0 = (A0[2] + H0_1 * d4A_0) - H0_0 * d4A_1;
+  //
+  vec2 d23A2 = d23A0 + d23A_0;
+  vec2 d23B2 = d23B0 + d23A_1;
+  vec2 d23C2 = d23C0 + d23A_2;
+  const double d4A2 = d4A0 + d4A_0;
+  const double d4B2 = d4B0 + d4A_1;
+  const double d4C2 = d4C0 + d4A_2;
+  const double d0 = d4A_0 - A[0];
+  const double d1 = d4A_1 - A[1];
+  const double d2 = d4A_2 - A[2];
+  //
+  vec2 d23A3 = (d23A_0 + d23B2 * H1_2) - d23C2 * H1_1;
+  vec2 d23B3 = (d23A_1 + d23C2 * H1_0) - d23A2 * H1_2;
+  vec2 d23C3 = (d23A_2 + d23A2 * H1_1) - d23B2 * H1_0;
+  const double d4A3 = ((A3[0] + d0) + d4B2 * H1_2) - d4C2 * H1_1;
+  const double d4B3 = ((A3[1] + d1) + d4C2 * H1_0) - d4A2 * H1_2;
+  const double d4C3 = ((A3[2] + d2) + d4A2 * H1_1) - d4B2 * H1_0;
+  //
+  vec2 d23A4 = (d23A_0 + d23B3 * H1_2) - d23C3 * H1_1;
+  vec2 d23B4 = (d23A_1 + d23C3 * H1_0) - d23A3 * H1_2;
+  vec2 d23C4 = (d23A_2 + d23A3 * H1_1) - d23B3 * H1_0;
+  const double d4A4 = ((A4[0] + d0) + d4B3 * H1_2) - d4C3 * H1_1;
+  const double d4B4 = ((A4[1] + d1) + d4C3 * H1_0) - d4A3 * H1_2;
+  const double d4C4 = ((A4[2] + d2) + d4A3 * H1_1) - d4B3 * H1_0;
+  //
+  vec2 d23A5 = 2. * d23A4 - d23A_0;
+  vec2 d23B5 = 2. * d23B4 - d23A_1;
+  vec2 d23C5 = 2. * d23C4 - d23A_2;
+  const double d4A5 = 2. * d4A4 - d4A_0;
+  const double d4B5 = 2. * d4B4 - d4A_1;
+  const double d4C5 = 2. * d4C4 - d4A_2;
+  //
+  vec2 d23A6 = d23B5 * H2_2 - d23C5 * H2_1;
+  vec2 d23B6 = d23C5 * H2_0 - d23A5 * H2_2;
+  vec2 d23C6 = d23A5 * H2_1 - d23B5 * H2_0;
+  double d4A6 = d4B5 * H2_2 - d4C5 * H2_1;
+  double d4B6 = d4C5 * H2_0 - d4A5 * H2_2;
+  double d4C6 = d4A5 * H2_1 - d4B5 * H2_0;
+
+  vec2 dR23_A = (d23A2 + d23A3 + d23A4) * S3;
+  vec2 dR23_B = (d23B2 + d23B3 + d23B4) * S3;
+  vec2 dR23_C = (d23C2 + d23C3 + d23C4) * S3;
+
+  vec2 res23_0 = ((d23A0 + 2. * d23A3) + (d23A5 + d23A6)) * (1. / 3.);
+  vec2 res23_1 = ((d23B0 + 2. * d23B3) + (d23B5 + d23B6)) * (1. / 3.);
+  vec2 res23_2 = ((d23C0 + 2. * d23C3) + (d23C5 + d23C6)) * (1. / 3.);
+
+  P[21] += dR23_A[0];
+  P[22] += dR23_B[0];
+  P[23] += dR23_C[0];
+  P[24] = res23_0[0];
+  P[25] = res23_1[0];
+  P[26] = res23_2[0];
+
+  P[28] += dR23_A[1];
+  P[29] += dR23_B[1];
+  P[30] += dR23_C[1];
+  P[31] = res23_0[1];
+  P[32] = res23_1[1];
+  P[33] = res23_2[1];
+
+  P[35] += (d4A2 + d4A3 + d4A4) * S3;
+  P[36] += (d4B2 + d4B3 + d4B4) * S3;
+  P[37] += (d4C2 + d4C3 + d4C4) * S3;
+  P[38] = ((d4A0 + 2. * d4A3) + (d4A5 + d4A6 + A6[0])) * (1. / 3.);
+  P[39] = ((d4B0 + 2. * d4B3) + (d4B5 + d4B6 + A6[1])) * (1. / 3.);
+  P[40] = ((d4C0 + 2. * d4C3) + (d4C5 + d4C6 + A6[2])) * (1. / 3.);
+}
 
 #endif

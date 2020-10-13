@@ -69,7 +69,17 @@ RkJacobianVec_bench(benchmark::State& state)
 }
 BENCHMARK(RkJacobianVec_bench)->RangeMultiplier(2)->Range(1024, 4096);
 
-
+static void
+RkJacobianVec2_bench(benchmark::State& state)
+{
+  for (auto _ : state) {
+    const int n = state.range(0);
+    for (int i = 0; i < n; ++i) {
+      JacPropVec(Pvec2, H0, H1, H2, A, A0, A3, A4, A6, 1.4);
+    }
+  }
+}
+BENCHMARK(RkJacobianVec2_bench)->RangeMultiplier(2)->Range(1024, 4096);
 
 
 BENCHMARK_MAIN();
